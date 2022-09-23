@@ -1,7 +1,7 @@
 <?php
 
-namespace ma_karov\guess_number\Controller;
-use function ma_karov\guess_number\View\showGame;
+namespace nagaevdg\guess_number\Controller;
+use function nagaevdg\guess_number\View\showGame;
 
 function startGame()
 {

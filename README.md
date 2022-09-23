@@ -45,7 +45,7 @@
 
 1. Установить composer, если он не установлен;
 2. Перейти в каталог, в который вы будете клонировать проект;
-3. Выполнить команду `composer require makarovna/guess_number`;
+3. Выполнить команду `composer require nagaevdg/guess_number`;
 4. Перейти в каталог vendor/bin;
 5. Запустить файл guess-number.bat.
 
@@ -53,4 +53,4 @@
 
 ## Ссылки
 
-Packagist: <..>
+Packagist: <https://packagist.org/packages/nagaevdg/guess-number>

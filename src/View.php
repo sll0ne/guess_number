@@ -1,6 +1,6 @@
 <?php
 
-namespace ma_karov\guess_number\View;
+namespace nagaevdg\guess_number\View;
 
 function showGame()
 {
