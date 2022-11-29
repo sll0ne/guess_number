@@ -2,7 +2,7 @@
 
 namespace nagaevdg\guess_number\DB;
 
-use SQLite3;
+use \RedBeanPHP\R as R;
 
 use function nagaevdg\guess_number\View\showGamesInfo;
 use function nagaevdg\guess_number\View\showTurnInfo;
@@ -10,9 +10,9 @@ use function nagaevdg\guess_number\View\showGamesTop;
 
 function createDB()
 {
-    $dataBase = new \SQLite3('GN.db');
+    R::setup('sqlite:GN.db');
 
-    $gamesInfoTable = "CREATE TABLE gamesInfo(
+    $gamesTable = "CREATE TABLE gamesInfo(
         idGame INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
         gameData DATE,
         gameTime TIME,
@@ -21,16 +21,16 @@ function createDB()
 		generatedNumber INTEGER,
 		gameOutcome TEXT
 	 )";
-    $dataBase->exec($gamesInfoTable);
+     R::exec($gamesTable);
 
 
-    $attemptsTable = "CREATE TABLE attempts(
+    $attemptsInfo = "CREATE TABLE attempts(
 		 idGame INTEGER,
 		 numberAttempts INTEGER,
 		 proposedNumber INTEGER,
 		 computerResponds TEXT
 	 )";
-    $dataBase->exec($attemptsTable);
+     R::exec($attemptsInfo);
 }
 
 function openDatabase()
@@ -38,20 +38,20 @@ function openDatabase()
     if (!file_exists("GN.db")) {
         createDB();
     } else {
-        $dataBase = new \SQLite3('GN.db');
+        R::setup('sqlite:GN.db');
     }
 }
 
 function insertNewGame($userName, $hidden_num, $MAX_NUM)
 {
-    $dataBase = new \SQLite3('GN.db');
+    openDatabase();
 
     date_default_timezone_set("Europe/Moscow");
 
     $gameData = date("d") . "." . date("m") . "." . date("Y");
     $gameTime = date("H") . ":" . date("i") . ":" . date("s");
 
-    $query = "INSERT INTO gamesInfo(
+    R::exec("INSERT INTO gamesInfo(
 		gameData,
 		gameTime,
 		playerName,
@@ -59,24 +59,20 @@ function insertNewGame($userName, $hidden_num, $MAX_NUM)
 		generatedNumber
    ) VALUES(
 		'$gameData',
-      '$gameTime',
+        '$gameTime',
 		'$userName',
 		'$MAX_NUM',
 		'$hidden_num'
-   )";
+   )");
 
-    $dataBase->exec($query);
-
-    $query = "SELECT idGame FROM gamesInfo ORDER BY idGame DESC LIMIT 1";
-
-    return $dataBase->querySingle($query);
+    return R::getRow("SELECT idGame FROM gamesInfo ORDER BY idGame DESC LIMIT 1");
 }
 
 function addAttemptInDB($idGame, $proposedNumber, $computerResponds, $numberAttempts)
 {
-    $dataBase = new \SQLite3('GN.db');
+    openDatabase();
 
-    $query = "INSERT INTO attempts(
+    R::exec("INSERT INTO attempts(
 	    idGame,
 	    numberAttempts,
 		proposedNumber,
@@ -86,44 +82,35 @@ function addAttemptInDB($idGame, $proposedNumber, $computerResponds, $numberAtte
         '$numberAttempts',
         '$proposedNumber',
         '$computerResponds'
-    )";
-
-    $dataBase->exec($query);
+    )");
 }
 
 function updateInfoGame($idGame, $gameOutcome)
 {
-    $dataBase = new \SQLite3('GN.db');
-
-    $query = "UPDATE gamesInfo SET gameOutcome = '$gameOutcome' WHERE idGame = '$idGame'";
-
-    $dataBase->exec($query);
+    openDatabase();
+    R::exec("UPDATE gamesInfo SET gameOutcome = '$gameOutcome' WHERE idGame = '$idGame'");
 }
 
 function outputListGame($gameOutcome = false)
 {
-    $dataBase = new \SQLite3('GN.db');
+    openDatabase();
 
     if ($gameOutcome === "win") {
-        $result = $dataBase->query("SELECT * FROM gamesInfo WHERE gameOutcome = '$gameOutcome'");
+        $result = R::getAll("SELECT * FROM gamesInfo WHERE gameOutcome = '$gameOutcome'");
     } elseif ($gameOutcome === "loss") {
-        $result = $dataBase->query("SELECT * FROM gamesInfo WHERE gameOutcome = '$gameOutcome'");
+        $result = R::getAll("SELECT * FROM gamesInfo WHERE gameOutcome = '$gameOutcome'");
     } else {
-        $result = $dataBase->query("SELECT * FROM gamesInfo");
+        $result = R::getAll("SELECT * FROM gamesInfo");
     }
 
     while ($row = $result->fetchArray()) {
         showGamesInfo($row);
 
-        $query = "SELECT
-            numberAttempts,
+        $gameTurns = R::getAll("SELECT numberAttempts,
             proposedNumber, 
             computerResponds
             FROM attempts 
-            WHERE idGame='$row[0]'
-            ";
-
-        $gameTurns = $dataBase->query($query);
+            WHERE idGame='$row[0]'");
         while ($gameTurnsRow = $gameTurns->fetchArray()) {
             showTurnInfo($gameTurnsRow);
         }
@@ -132,9 +119,9 @@ function outputListGame($gameOutcome = false)
 
 function showTopList()
 {
-    $dataBase = new \SQLite3('GN.db');
+    openDatabase();
 
-    $result = $dataBase->query("SELECT playerName, 
+    $result = R::getAll("SELECT playerName, 
     (SELECT COUNT(*) FROM gamesInfo as b WHERE a.playerName = b.playerName AND gameOutcome = 'win') as countWin,
     (SELECT COUNT(*) FROM gamesInfo as c WHERE a.playerName = c.playerName AND gameOutcome = 'loss') 
     as countLoss FROM gamesInfo as a
@@ -147,12 +134,11 @@ function showTopList()
 
 function checkGameId($id)
 {
-    $dataBase = new \SQLite3('GN.db');
+    openDatabase();
+    $query = R::getCell("SELECT playerName FROM gamesInfo WHERE idGame=" . [$id]);
 
-    $query = "SELECT playerName FROM gamesInfo WHERE idGame=" . $id;
-
-    if ($dataBase->querySingle($query)) {
-        return $dataBase->querySingle($query);
+    if ($query) {
+        return $query;
     }
 
     return false;

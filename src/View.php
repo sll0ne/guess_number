@@ -2,6 +2,8 @@
 
 namespace nagaevdg\guess_number\View;
 
+use function cli\line;
+use function cli\prompt;
 use function nagaevdg\guess_number\Model\showGame;
 use function nagaevdg\guess_number\Model\commandHandler;
 use function nagaevdg\guess_number\Model\replayGame;
@@ -19,7 +21,7 @@ function MenuGame()
     echo "--exit" . PHP_EOL;
     echo PHP_EOL;
 
-    $getCommand = \cli\prompt("Enter key value");
+    $getCommand = prompt("Enter key value: ");
 
     commandHandler($getCommand);
 }
@@ -62,7 +64,7 @@ function showGamesInfo($row)
         $row[6] = "Not completed";
     }
 
-    \cli\line(
+    line(
         "ID: $row[0]| Date: $row[1] $row[2] | Name: $row[3] | Max number: "
         . "$row[4] | Generated number: $row[5] | Result: $row[6]"
     );
@@ -70,12 +72,14 @@ function showGamesInfo($row)
 
 function showTurnInfo($row)
 {
-    \cli\line("----- Attempt number: $row[0] | Selected number: $row[1] |Computer response: $row[2]");
+    line(
+        "----- Attempt number: $row[0] | Selected number: $row[1] |Computer response: $row[2]"
+    );
 }
 
 function showGamesTop($row)
 {
-    \cli\line(
+    line(
         "Name: $row[0] | Number of wins: $row[1] | Number of losses: $row[2]"
     );
 }

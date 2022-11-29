@@ -2,6 +2,7 @@
 
 namespace nagaevdg\guess_number\Model;
 
+use function cli\prompt;
 use function nagaevdg\guess_number\View\saySalute;
 use function nagaevdg\guess_number\View\endGame;
 use function nagaevdg\guess_number\View\MenuGame;
@@ -112,6 +113,6 @@ function commandHandler($getCommand)
             exit;
         }
 
-        $getCommand = \cli\prompt("Enter the key value");
+        $getCommand = prompt("Enter the key value: ");
     }
 }
